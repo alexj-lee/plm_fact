@@ -34,18 +34,18 @@ class SparseCoder(nn.Module):
             )
         self.running_mean_const = (self.history_len - 1) / self.history_len
 
-        self.l1_history = torch.Tensor(basis_dim).float()
-        self.register_buffer('l1_history', self.l1_history)
+        l1_history = torch.Tensor(basis_dim).float()
+        self.register_buffer('l1_history', l1_history)
 
-        self.signal_energy = torch.Tensor(0).float()
-        self.noise_energy = torch.Tensor(0).float()
+        signal_energy = torch.Tensor(0).float()
+        noise_energy = torch.Tensor(0).float()
 
         self.register_buffer(
             'signal_energy',
-            self.signal_energy,
+            signal_energy,
         )
 
-        self.register_buffer('noise_energy', self.noise_energy)
+        self.register_buffer('noise_energy', noise_energy)
 
         eye = torch.zeros(embed_dim, basis_dim, dtype=torch.float32)
         self.register_buffer('eye', eye)
