@@ -1,0 +1,60 @@
+[build-system]
+requires = [
+  "setuptools >= 64",
+  "wheel",
+  "setuptools_scm[toml]>=8",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "plm_fact/_version.py"
+
+[tool.black]
+target-version = ['py38', 'py39', 'py310']
+skip-string-normalization = true
+line-length = 79
+exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | build
+    | dist
+  )
+)
+'''
+
+
+[project]
+name = "brainform"
+authors = [{name = "Alex Lee", email = "alex.lee@ucsf.edu"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version"]
+dependencies = [ 
+    "pytest",
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "scikit-learn",
+    "torch",
+    "omegaconf",
+    "wandb",
+    "hydra-core",
+    "pandas",
+    "tqdm",
+    "pandas",
+    "zarr",
+    "dask",
+    "s3fs",
+    "biopython",
+]
+
+[project.urls]
+Home = "https//github.com/eelxela/plm_fact"
