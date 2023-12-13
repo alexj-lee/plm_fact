@@ -34,7 +34,7 @@ class SparseCoder(nn.Module):
             )
         self.running_mean_const = (self.history_len - 1) / self.history_len
 
-        l1_history = torch.Tensor(basis_dim).float()
+        l1_history = torch.zeros(basis_dim).float()
         self.register_buffer('l1_history', l1_history)
 
         signal_energy = torch.Tensor(0).float()
@@ -55,9 +55,10 @@ class SparseCoder(nn.Module):
 
         self.h = h
 
-    def _update(self, tens: torch.Tensor):
+    def _update(self, tens: torch.Tensor, update: torch.Tensor):
         # running average updates
-        return tens * self.running_mean_const
+        tens.mul_(self.running_mean_const)
+        tens.add_(update / self.history_len)
 
     def forward(self, I):
         # I should be (dim, bs)
@@ -65,23 +66,33 @@ class SparseCoder(nn.Module):
 
         a_hat, res = ISTA_PN(I, self.basis, self.lamb, self.n_iters)
 
-        self.l1_history = (
-            self._update(self.l1_history)
-            + a_hat.abs().mean(1) / self.history_len
-        )
+        # self.l1_history
+        # print('look', a_hat.abs().mean(1))
+        # print('l1', self.l1_history)
+        self._update(self.l1_history, a_hat.abs().mean(1))
 
-        self.hessian_diag_approx = (
-            self._update(self.hessian_diag_approx)
-        ) + a_hat.pow(2).mean(1) / self.history_len
+        self._update(self.hessian_diag_approx, a_hat.pow(2).mean(1))
 
-        signal_energy = (
-            self._update(self.signal_energy)
-            + I.pow(2).sum() / self.history_len
-        )
+        self._update(self.signal_energy, I.pow(2).sum())
 
-        noise_energy = self._update(self.noise_energy)
+        self._update(self.noise_energy, res.pow(2).sum())
+        # (
+        #     self._update(self.l1_history)
+        #     + a_hat.abs().mean(1) / self.history_len
+        # )
 
-        snr = signal_energy / noise_energy
+        # self.hessian_diag_approx = (
+        #     self._update(self.hessian_diag_approx)
+        # ) + a_hat.pow(2).mean(1) / self.history_len
+
+        # signal_energy = (
+        #     self._update(self.signal_energy)
+        #     + I.pow(2).sum() / self.history_len
+        # )
+
+        # noise_energy = self._update(self.noise_energy)
+
+        snr = self.signal_energy / self.noise_energy
 
         self.basis = quadraticBasisUpdate(
             self.basis,
@@ -98,4 +109,5 @@ class SparseCoder(nn.Module):
             hes_max=self.hessian_diag_approx.max(),
             l1_min=self.l1_history.min(),
             l1_max=self.l1_history.max(),
+            res=res.abs().mean(),
         )
