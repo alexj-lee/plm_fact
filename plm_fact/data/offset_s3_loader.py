@@ -34,6 +34,7 @@ def get_long_indices(index_list: List[int], cumsum_offsets: List[int]):
     cumsum_offsets = [5, 11, 14] # lengths of sequences for lengths (5, 6, 3)
 
     desired output: [0, 1, 2, 3, 4, 11, 12, 13]
+    where [0, 1, 2, 3, 4] are from end pairs [0, 5] (the 0th protein) and [11, 12, 13] are from end pairs [11, 14] (the 2th protein)
 
     Then we can just give a dataloader this list of indices to randomly shuffle to index using dask from S3.
 
@@ -53,11 +54,13 @@ def get_long_indices(index_list: List[int], cumsum_offsets: List[int]):
             _start = cumsum_offsets[a - 1]
 
         _end = cumsum_offsets[a]
+        print(_start, _end)
         return range(_start, _end)
 
     long_indices = []
 
     for idx in index_list:
+        print(idx)
         _long_indices = _long_indices_from_indx_pair(idx)
         long_indices.extend(_long_indices)
 
@@ -68,6 +71,7 @@ def get_data_loaders_rosetta(
     test_size: Optional[float] = 0.2,
     random_state: Optional[int] = 9999,
     includes_register_toks: Optional[bool] = True,
+    use_indices: Optional[List[int]] = None,
 ):
     try:
         0 < float(test_size) <= 1
@@ -76,14 +80,14 @@ def get_data_loaders_rosetta(
             f"test_size must be a float between 0 and 1. You passed {test_size}"
         )
 
-    dataset_path = "brainform-data/rosetta"
+    dataset_path = "s3://brainform-data/rosetta"
     offset_path = "s3://brainform-data/rosetta_offsets.npy"
 
     dataset = try_load_dataset(dataset_path)
     indices_offsets = try_load_offsets(offset_path)
 
-    all_indices = range(
-        len(indices_offsets)
+    all_indices = (
+        range(len(indices_offsets)) if use_indices is None else use_indices
     )  # this gives the length of the sequences, is len == num_seqs
 
     _train_indices, _valid_indices = model_selection.train_test_split(

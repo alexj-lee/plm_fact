@@ -54,6 +54,7 @@ dependencies = [
     "dask",
     "s3fs",
     "biopython",
+    "sparse_autoencoder"
 ]
 
 [project.urls]
