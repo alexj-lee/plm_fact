@@ -8,6 +8,7 @@ from typing import Optional, List
 
 def try_load_dataset(dataset_path: str):
     try:
+        # for colab need to avoid credential checking
         return dda.from_zarr(dataset_path, storage_options=dict(anon=True))
     except Exception as e:
         print(e)
@@ -17,9 +18,15 @@ def try_load_dataset(dataset_path: str):
 
 
 def try_load_offsets(offset_path: str):
-    s3_fs = S3FileSystem()
+    s3_fs = S3FileSystem(
+        anon=True
+    )  # for colab need to avoid credential checking
     try:
-        return np.load(s3_fs.open(offset_path))
+        return np.load(
+            s3_fs.open(
+                offset_path,
+            )
+        )
     except Exception as e:
         print(e)
         raise ValueError(
