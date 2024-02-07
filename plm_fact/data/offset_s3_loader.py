@@ -8,8 +8,9 @@ from typing import Optional, List
 
 def try_load_dataset(dataset_path: str):
     try:
-        return dda.from_zarr(dataset_path)
-    except:
+        return dda.from_zarr(dataset_path, storage_options=dict(anon=True))
+    except Exception as e:
+        print(e)
         raise ValueError(
             f'Tried to load dataset from S3 using `dda.from_zarr`, but failed. Check that the path is correct. Path is: {dataset_path}'
         )
@@ -19,7 +20,8 @@ def try_load_offsets(offset_path: str):
     s3_fs = S3FileSystem()
     try:
         return np.load(s3_fs.open(offset_path))
-    except:
+    except Exception as e:
+        print(e)
         raise ValueError(
             f'Tried to load offset from S3 but failed. Check that the path is correct. Path is: {offset_path}'
         )
