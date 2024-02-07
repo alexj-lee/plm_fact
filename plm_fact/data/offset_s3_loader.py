@@ -5,7 +5,6 @@ from s3fs.core import S3FileSystem
 from dask import array as dda
 from typing import Optional, List
 
-
 def try_load_dataset(dataset_path: str):
     try:
         # for colab need to avoid credential checking
@@ -36,6 +35,8 @@ def try_load_offsets(offset_path: str):
 
 def get_long_indices(index_list: List[int], cumsum_offsets: List[int]):
     """
+    Returns a full list of indices corresponding to a set of proteins given a list of protein (start, end) index pairs.
+    These are what I am calling "long" instead of "short" meaning (start, end) index pairs.
 
     This function takes a list of indices and a cumulative offset length list. We want to convert something like:
 
@@ -52,7 +53,7 @@ def get_long_indices(index_list: List[int], cumsum_offsets: List[int]):
         cumsum_offsets (List[int]): The lengths of the sequences as a cumulative sum.
 
     Returns:
-        List[int]: List of long indices.
+        List[int]: List of "long" indices.
 
     """
 
@@ -74,12 +75,31 @@ def get_long_indices(index_list: List[int], cumsum_offsets: List[int]):
     return long_indices
 
 
-def get_data_loaders_rosetta(
+def get_data_iter_rosetta(
     test_size: Optional[float] = 0.2,
     random_state: Optional[int] = 9999,
     includes_register_toks: Optional[bool] = True,
     use_indices: Optional[List[int]] = None,
 ):
+    """_summary_
+
+    Args:
+        test_size (Optional[float], optional): Test size; if not provided will arbitrary select across proteins (meaning, since
+        there is a subset of rows of L * 33 x 1280) that corresponds to a single protein, if arg is None will then
+        just select randomly across all N proteins instead of a more reasonable sampling of embeddings from a fixed subset
+        of proteins in general. Defaults to 0.2.
+        random_state (Optional[int], optional): Random state for iterators. Defaults to 9999.
+        includes_register_toks (Optional[bool], optional): Whether or not we want to include "non-AA" tokens such as <cls> and <eos>. Defaults to True.
+        use_indices (Optional[List[int]], optional): Whether to accept a custom list of indices
+        that will sample a given set of tokens corresponding to specific proteins; see `test_size` for description. Defaults to None.
+
+    Raises:
+        ValueError: Test size is incorrectly formatted, ie not float on [0, 1).
+
+    Returns:
+        (S3WithOffsetsDataset, S3WithOffsetsDataset): a vanilla PyTorch Iterable Dataset.
+        Note for YC: you need to use a regular torch.utils.data.DataLoader to actually get the data out of this.
+    """
     try:
         0 < float(test_size) <= 1
     except:
@@ -110,13 +130,13 @@ def get_data_loaders_rosetta(
     valid_indices = get_long_indices(_valid_indices, cumsum_offsets)
 
     # realized too late I should have just used a subset sampler, but that's OK
-    train_dataset = S3WithOffsetsLoader(dataset, train_indices)
-    test_dataset = S3WithOffsetsLoader(dataset, valid_indices)
+    train_dataset = S3WithOffsetsDataset(dataset, train_indices)
+    test_dataset = S3WithOffsetsDataset(dataset, valid_indices)
 
     return train_dataset, test_dataset
 
 
-class S3WithOffsetsLoader(data.Dataset):
+class S3WithOffsetsDataset(data.Dataset):
     def __init__(
         self,
         dataset: dda.core.Array,

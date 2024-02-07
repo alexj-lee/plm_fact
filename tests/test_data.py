@@ -6,7 +6,7 @@ import numpy as np
 # @pytest.fixture
 def test_load_fn_rosetta():
     # TODO: should split this up
-    train_loader, test_loader = plm.data.get_data_loaders_rosetta()
+    train_loader, test_loader = plm.data.get_data_iter_rosetta()
     assert len(train_loader) > 0, 'Train loader has no length'
     assert len(test_loader) > 0, 'Test loader has no length'
 
