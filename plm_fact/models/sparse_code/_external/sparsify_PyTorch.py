@@ -1,14 +1,16 @@
 """
 This file contains multiple method to sparsify the coefficients
 """
+
 import time
 import numpy as np
 import numpy.linalg as la
 
 # import utility
-from IPython.display import (
-    clear_output,
-)  # This is to clean the output info to make the process cleaner
+# from IPython.display import (
+#     clear_output,
+# )  # This is to clean the output info to make the process cleaner;
+# this is historical from Yubei and Zeyus code
 
 import torch
 import torch.nn.functional as F
