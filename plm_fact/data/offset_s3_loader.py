@@ -54,13 +54,11 @@ def get_long_indices(index_list: List[int], cumsum_offsets: List[int]):
             _start = cumsum_offsets[a - 1]
 
         _end = cumsum_offsets[a]
-        print(_start, _end)
         return range(_start, _end)
 
     long_indices = []
 
     for idx in index_list:
-        print(idx)
         _long_indices = _long_indices_from_indx_pair(idx)
         long_indices.extend(_long_indices)
 
