@@ -5,6 +5,7 @@ from s3fs.core import S3FileSystem
 from dask import array as dda
 from typing import Optional, List
 
+
 def try_load_dataset(dataset_path: str):
     try:
         # for colab need to avoid credential checking
@@ -153,4 +154,4 @@ class S3WithOffsetsDataset(data.Dataset):
 
     def __getitem__(self, index: int):
         _index = self.indices[index]
-        return self.dataset[_index]
+        return self.dataset[_index].compute()

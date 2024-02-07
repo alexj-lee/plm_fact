@@ -11,9 +11,9 @@ def test_load_fn_rosetta():
     assert len(test_loader) > 0, 'Test loader has no length'
 
     loader_iter = iter(train_loader)
-    first = next(loader_iter).compute()
+    first = next(loader_iter)
     assert abs(first.mean()) > 0, 'Batch mean was zero'
-    second = next(loader_iter).compute()
+    second = next(loader_iter)
 
     assert (
         np.allclose(first, second) is False
