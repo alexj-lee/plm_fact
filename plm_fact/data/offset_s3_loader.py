@@ -154,4 +154,4 @@ class S3WithOffsetsDataset(data.Dataset):
 
     def __getitem__(self, index: int):
         _index = self.indices[index]
-        return self.dataset[_index].compute()
+        return self.dataset[_index].compute().astype(np.float32)
